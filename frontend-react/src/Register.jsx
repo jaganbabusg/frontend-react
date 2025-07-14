@@ -13,7 +13,6 @@ export default function Register() {
   const initialValues = {
     'first_name': '',
     'last_name': '',
-    'date_of_birth': '',
     'mobile': '',
     'email': '',
     'password': '',

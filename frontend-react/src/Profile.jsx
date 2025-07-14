@@ -57,7 +57,7 @@ export default function Profile() {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(function (e) {
         showFlashMessage('Please login again.', 'danger');
-        setLocation('/login');
+        setLocation('/');
       });
       showFlashMessage('Profile updated successfully!', 'success');
     }
