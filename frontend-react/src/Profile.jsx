@@ -3,15 +3,15 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import axios from 'axios';
 import { useLocation } from 'wouter';
 import { useFlashMessage } from "./FlashMessageStore";
-import { useJWT } from "./UserStore";
-import axios from 'axios';
+import { useJWT } from './UserStore';
 
 export default function Profile() {
   const [location, setLocation] = useLocation();
   const { showFlashMessage } = useFlashMessage();
-  const [getJWT, setJWT] = useJWT();
+  const { getJWT, setJWT } = useJWT();
   const [initialValues, setInitialValues] = useState({});
   const token = getJWT();
   // Check if the user is logged in and fetch their profile data
@@ -27,8 +27,7 @@ export default function Profile() {
           showFlashMessage('Please login again.', 'danger');
           setLocation('/login');
         });
-        setInitialValues({ ...response.data.user });
-        console.log(response.data.user);
+        setInitialValues({ ...response.data });
       }
       fetchData();
     }
@@ -37,17 +36,24 @@ export default function Profile() {
   const validationSchema = Yup.object({
     first_name: Yup.string().required('First Name is required'),
     last_name: Yup.string().required('Last Name is required'),
-    date_of_birth: Yup.date().required('Date of Birth is required'),
     mobile: Yup.string().required('Mobile number is required'),
-    email: Yup.string().email('Invalid email address').required('Email is required')
+    email: Yup.string().email('Invalid email address').required('Email is required'),
+    addresses: Yup.array().of(
+      Yup.object({
+        unit_no: Yup.string().required('Unit No. is required'),
+        address_line_1: Yup.string().required('Block No. is required'),
+        address_line_2: Yup.string().required('Street Name is required'),
+        postal_code: Yup.string().required('Postal code is required')
+      })
+    )
   });
   // Form Update handler
-  const handleSubmit = async (values, { formikHelpers }) => {
+  const handleSubmit = async (values) => {
     if (!token) {
       showFlashMessage('You must be logged in to update your profile.', 'danger');
       setLocation('/login');
     } else {
-      const response = await axios.put(import.meta.env.VITE_API_URL + '/api/user/rud', values, {
+      await axios.put(import.meta.env.VITE_API_URL + '/api/user/rud', values, {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(function (e) {
         showFlashMessage('Please login again.', 'danger');
@@ -64,7 +70,7 @@ export default function Profile() {
         showFlashMessage('You must be logged in to delete your account.', 'danger');
         setLocation('/login');
       } else {
-        await axios.delete(import.meta.env.VITE_API_URL + '/api/user/rud', {
+        axios.delete(import.meta.env.VITE_API_URL + '/api/user/rud', {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(function (e) {
           showFlashMessage('Please login again.', 'danger');
@@ -102,13 +108,6 @@ export default function Profile() {
               )}
             </div>
             <div className="mb-3">
-              <label htmlFor="date_of_birth" className="form-label">Date of Birth</label>
-              <Field id="date_of_birth" name="date_of_birth" type="date" className="form-control" />
-              {formik.errors.date_of_birth && formik.touched.date_of_birth && (
-                <div className="text-danger">{formik.errors.date_of_birth}</div>
-              )}
-            </div>
-            <div className="mb-3">
               <label htmlFor="mobile" className="form-label">Mobile</label>
               <Field id="mobile" name="mobile" type="text" className="form-control" />
               {formik.errors.mobile && formik.touched.mobile && (
@@ -122,11 +121,58 @@ export default function Profile() {
                 <div className="text-danger">{formik.errors.email}</div>
               )}
             </div>
-
-
-
-
-
+            <hr />
+            <h5>Addresses</h5>
+            {formik.values.addresses && formik.values.addresses.map((address, index) => (
+              <div key={index} className="border p-3 mb-3">
+                <div className="mb-3">
+                  <label htmlFor={`addresses.${index}.unit_no`} className="form-label">Unit No</label>
+                  <Field id={`addresses.${index}.unit_no`} name={`addresses.${index}.unit_no`} type="text" className="form-control" />
+                  {formik.errors.addresses && formik.errors.addresses[index] && formik.errors.addresses[index].unit_no && (
+                    <div className="text-danger">{formik.errors.addresses[index].unit_no}</div>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor={`addresses.${index}.address_line_1`} className="form-label">Address Line 1</label>
+                  <Field id={`addresses.${index}.address_line_1`} name={`addresses.${index}.address_line_1`} type="text" className="form-control" />
+                  {formik.errors.addresses && formik.errors.addresses[index] && formik.errors.addresses[index].address_line_1 && (
+                    <div className="text-danger">{formik.errors.addresses[index].address_line_1}</div>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor={`addresses.${index}.address_line_2`} className="form-label">Address Line 2</label>
+                  <Field id={`addresses.${index}.address_line_2`} name={`addresses.${index}.address_line_2`} type="text" className="form-control" />
+                  {formik.errors.addresses && formik.errors.addresses[index] && formik.errors.addresses[index].address_line_2 && (
+                    <div className="text-danger">{formik.errors.addresses[index].address_line_2}</div>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <label htmlFor={`addresses.${index}.postal_code`} className="form-label">Postal Code</label>
+                  <Field id={`addresses.${index}.postal_code`} name={`addresses.${index}.postal_code`} type="text" className="form-control" />
+                  {formik.errors.addresses && formik.errors.addresses[index] && formik.errors.addresses[index].postal_code && (
+                    <div className="text-danger">{formik.errors.addresses[index].postal_code}</div>
+                  )}
+                </div>
+                <button type="button" className="btn btn-danger" onClick={() => {
+                  const newAddresses = formik.values.addresses.filter((_, i) => i !== index);
+                  formik.setFieldValue('addresses', newAddresses);
+                }} disabled={formik.values.addresses.length === 1}>
+                  Remove Address
+                </button>
+              </div>
+            ))}
+            <button type="button" className="btn btn-secondary mb-3" onClick={() => {
+              const newAddress = {
+                unit_no: '',
+                address_line_1: '',
+                address_line_2: '',
+                postal_code: ''
+              };
+              formik.setFieldValue('addresses', [...formik.values.addresses, newAddress]);
+            }}>
+              Add Address
+            </button>
+            <hr />
             <button type="submit" className="btn btn-primary" disabled={formik.isSubmitting}>
               {formik.isSubmitting ? 'Updating...' : 'Update Profile'}
             </button>

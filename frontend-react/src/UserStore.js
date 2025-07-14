@@ -5,7 +5,7 @@ export function useJWT() {
     const [JWT, setJWTAtom] = useAtom(JWTAtom);
     //store JWT token in localstorage and in Jotai atom
     const setJWT = (token) => {
-        setJWT(token);
+        setJWTAtom(token);
         localStorage.setItem('jwt', token);
     };
     // retrieve JWT token from localstorage and Jotai atom

@@ -23,8 +23,10 @@ export default function Login() {
   const onSubmit = async (values, formikHelpers) => {
     try {
       const response = await axios.post(import.meta.env.VITE_API_URL + '/api/user/login', values);
+      setJWT(response.data.token);
       showFlashMessage('Login successful', 'success');
       setLocation('/');
+
     } catch (e) {
       showFlashMessage('Login failed', 'danger');
     } finally {

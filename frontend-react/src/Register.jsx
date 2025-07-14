@@ -22,7 +22,6 @@ export default function Register() {
   const validationSchema = Yup.object({
     first_name: Yup.string().required('Required'),
     last_name: Yup.string().required('Required'),
-    date_of_birth: Yup.date().required('Required'),
     mobile: Yup.string().matches(/^\d{8}$/, 'Must be a valid 8-digit mobile number').required('Required'),
     email: Yup.string().email('Invalid email address').required('Required'),
     password: Yup.string().min(8, 'Must be at least 8 characters').required('Required'),
@@ -64,13 +63,6 @@ export default function Register() {
               <Field id="last_name" name="last_name" type="text" className="form-control" />
               {formik.errors.last_name && formik.touched.last_name && (
                 <div className="text-danger">{formik.errors.last_name}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label htmlFor="date_of_birth" className="form-label">Date of Birth</label>
-              <Field id="date_of_birth" name="date_of_birth" type="date" className="form-control" />
-              {formik.errors.date_of_birth && formik.touched.date_of_birth && (
-                <div className="text-danger">{formik.errors.date_of_birth}</div>
               )}
             </div>
             <div className="mb-3">
